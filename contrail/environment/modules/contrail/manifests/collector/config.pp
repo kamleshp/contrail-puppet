@@ -122,8 +122,8 @@ class contrail::collector::config (
     } ->
 
     contrail_analytics_nodemgr_config {
-      'DEFAULT/server' : value => $config_ip_to_use;
-      'DEFAULT/port'   : value => '5998';
+      'DISCOVERY/server' : value => $config_ip_to_use;
+      'DISCOVERY/port'   : value => '5998';
     } ->
 
     contrail_alarm_gen_config {

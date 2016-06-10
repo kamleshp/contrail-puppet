@@ -22,5 +22,9 @@ class contrail::profile::haproxy (
         Class['::contrail::uninstall_haproxy'] ->
         contrail::lib::report_status { 'uninstall_haproxy_completed': state => 'uninstall_haproxy_completed' }
         contain ::contrail::uninstall_haproxy
+  } elsif ('loadbalancer' in $host_roles) {
+        notify { 'External LB installing haproxy':; } ->
+        class { '::contrail::haproxy': }
+        contain ::contrail::haproxy
   }
 }

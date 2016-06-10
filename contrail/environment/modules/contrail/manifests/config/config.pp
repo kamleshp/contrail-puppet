@@ -42,6 +42,7 @@ class contrail::config::config (
     $collector_ip = $::contrail::params::collector_ip_to_use,
     $vip = $::contrail::params::vip_to_use,
     $contrail_rabbit_servers= $::contrail::params::contrail_rabbit_servers,
+    $contrail_rabbit_port= $::contrail::params::contrail_rabbit_port,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) {
     # Main code for class starts here
@@ -267,6 +268,7 @@ class contrail::config::config (
         'DEFAULTS/disc_server_port'     : value => '5998';
         'DEFAULTS/zk_server_ip'         : value => "$zk_ip_port_list";
         'DEFAULTS/rabbit_server'        : value => "$contrail_rabbit_servers";
+        'DEFAULTS/rabbit_port'          : value => "$contrail_rabbit_port";
         'SECURITY/use_certs'            : value => "$use_certs";
         'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/apiserver_key.pem';
         'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/apiserver.pem';
@@ -291,6 +293,7 @@ class contrail::config::config (
         'DEFAULTS/log_local'            : value => '1';
         'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
         'DEFAULTS/rabbit_server'        : value => "$contrail_rabbit_servers";
+        'DEFAULTS/rabbit_port'          : value => "$contrail_rabbit_port";
         'SECURITY/use_certs'            : value => "$use_certs";
         'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/schema_xfer_key.pem';
         'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/schema_xfer.pem';
@@ -312,6 +315,7 @@ class contrail::config::config (
          'DEFAULTS/log_local'            : value => '1';
          'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
          'DEFAULTS/rabbit_server'        : value => "$contrail_rabbit_servers";
+         'DEFAULTS/rabbit_port'          : value => "$contrail_rabbit_port";
          'SECURITY/use_certs'            : value => "$use_certs";
          'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/svc_monitor_key.pem';
          'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/svc_monitor.pem';
@@ -321,6 +325,7 @@ class contrail::config::config (
     } ->
     contrail_device_manager_config {
         'DEFAULTS/rabbit_server'        : value => "$contrail_rabbit_servers";
+        'DEFAULTS/rabbit_port'          : value => "$contrail_rabbit_port";
         'DEFAULTS/api_server_ip'        : value => "$config_ip";
         'DEFAULTS/disc_server_ip'       : value => "$config_ip";
         'DEFAULTS/api_server_port'      : value => '8082';

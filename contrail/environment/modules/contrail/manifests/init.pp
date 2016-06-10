@@ -550,6 +550,10 @@
 #     User provided port for amqp service
 #     (optional) - Defaults to ''.
 #
+# Add bird specific params here..
+# [*loadbalancer_cidr*]
+#     User provide the vip which is the loopback ip on bird node
+#
 # [*nova_rabbit_hosts*]
 #     AMQP IP list to use for Nova when using an external openstack
 #     (optional) - Defaults to undef
@@ -706,6 +710,10 @@ class contrail (
     $openstack_amqp_port = '',
     $sriov = {},
     $sriov_enable = false,
+    $enable_loadbalancer = true,
+    $loadbalancer_cidr = undef,
+    $loadbalancer_method = undef,
+    $loadbalancer_ip_list = undef,
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -742,6 +750,10 @@ class contrail (
 	database_initial_token =>		hiera(contrail::database::initial_token, hiera(contrail::params::database_initial_token, $database_initial_token)),
 	database_dir =>				hiera(contrail::database::directory, hiera(contrail::params::database_dir, $database_dir)),
 	database_minimum_diskGB =>		hiera(contrail::database::minimum_diskGB, hiera(contrail::params::database_minimum_diskGB, $database_minimum_diskGB)),
+        # bird loadbalancer parameters
+        loadbalancer_cidr =>                    hiera(contrail::loadbalancer::loadbalancer_cidr, hiera(contrail::params::loadbalancer_cidr, $loadbalancer_cidr)),
+        loadbalancer_method =>                  hiera(contrail::loadbalancer::loadbalancer_method, hiera(contrail::params::loadbalancer_method, $loadbalancer_method)),
+        loadbalancer_ip_list =>                 hiera(contrail::loadbalancer::loadbalancer_ip_list, hiera(contrail::params::loadbalancer_ip_list, $loadbalancer_ip_list)),
         # Analytics Parameters
 	collector_ip_list =>			hiera(contrail::analytics::analytics_ip_list, hiera(contrail::params::collector_ip_list, $collector_ip_list)),
 	collector_name_list =>			hiera(contrail::analytics::analytics_name_list, hiera(contrail::params::collector_name_list, $collector_name_list)),
@@ -868,6 +880,7 @@ class contrail (
 	enable_collector =>			hiera(contrail::sequencing::enable_collector, hiera(contrail::params::enable_collector, $enable_collector)),
 	enable_webui =>				hiera(contrail::sequencing::enable_webui, hiera(contrail::params::enable_webui, $enable_webui)),
 	enable_compute =>			hiera(contrail::sequencing::enable_compute, hiera(contrail::params::enable_compute, $enable_compute)),
+        enable_loadbalancer =>                  hiera(contrail::sequencing::enable_loadbalancer, hiera(contrail::params::enable_loadbalancer, $enable_loadbalancer)),
 	enable_tsn =>				hiera(contrail::sequencing::enable_tsn, hiera(contrail::params::enable_tsn, $enable_tsn)),
 	enable_toragent =>			hiera(contrail::sequencing::enable_toragent, hiera(contrail::params::enable_toragent, $enable_toragent)),
 	enable_pre_exec_vnc_galera =>		hiera(contrail::sequencing::enable_pre_exec_vnc_galera, hiera(contrail::params::enable_pre_exec_vnc_galera, $enable_pre_exec_vnc_galera)),

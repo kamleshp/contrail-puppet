@@ -15,7 +15,8 @@ class openstack::common::cinder {
 
     class { '::cinder':
       sql_connection  => $::openstack::resources::connectors::cinder,
-      rabbit_hosts     => $openstack_rabbit_servers,
+      rabbit_host     => $openstack_rabbit_servers,
+      rabbit_port     => $::contrail::params::openstack_rabbit_port,
       rabbit_userid   => $::openstack::config::rabbitmq_user,
       rabbit_password => $::openstack::config::rabbitmq_password,
       debug           => $::openstack::config::debug,
@@ -35,8 +36,7 @@ class openstack::common::cinder {
       'database/connection_debug':         value => "10";
       'database/pool_timeout':             value => "120";
     }
-
-
+    $storage_server = $internal_vip
   } else {
     class { '::cinder':
       sql_connection  => $::openstack::resources::connectors::cinder,
@@ -47,12 +47,10 @@ class openstack::common::cinder {
       verbose         => $::openstack::config::verbose,
       mysql_module    => '2.2',
     }
-
+    $storage_server = $::openstack::config::storage_address_api
 
   }
 
-
-  $storage_server = $::openstack::config::storage_address_api
   $glance_api_server = "${storage_server}:9292"
 
   class { '::cinder::glance':

@@ -311,6 +311,19 @@ listen memcached 0.0.0.0:11222
    timeout server 48h 
 $__memcached_servers__
 
+listen  rabbitmq 0.0.0.0:5673
+    mode tcp
+    maxconn 10000
+    balance leastconn
+    option tcpka
+    option nolinger
+    option forceclose
+    timeout client 0
+    timeout server 0
+    timeout client-fin 60s
+    timeout server-fin 60s
+$__rabbitmq_servers__
+
 listen  mysql 0.0.0.0:33306
     mode tcp
     balance leastconn
@@ -381,6 +394,7 @@ def main(args_str=None):
     
     config_host_list_str = "<%=@config_name_list_shell%>"
     config_ip_list_str = "<%=@config_ip_list_shell%>"
+    loadbalancer_ip_list_str = "<%=@loadbalancer_ip_list_shell%>"
 
     openstack_host_list_str = "<%=@openstack_name_list_shell%>"
     openstack_ip_list_str = "<%=@openstack_ip_list_shell%>"
@@ -394,6 +408,7 @@ def main(args_str=None):
 
     config_host_list = config_host_list_str.split(",")
     config_ip_list = config_ip_list_str.split(",")
+    loadbalancer_ip_list = loadbalancer_ip_list_str.split(",")
 
     openstack_host_list = openstack_host_list_str.split(",")
     openstack_ip_list = openstack_ip_list_str.split(",")
@@ -403,13 +418,15 @@ def main(args_str=None):
 
 
     toragent_stanza = tor_agent_ha_config(tor_details)
-    if host_ip in config_ip_list:
+    if (host_ip in config_ip_list) or (host_ip in loadbalancer_ip_list):
         config_stanza = generate_config_ha_config(config_ip_list, openstack_ip_list, host_ip, internal_vip, contrail_internal_vip)
 
-    if host_ip in config_ip_list and (internal_vip != "none" or contrail_internal_vip != "none"):
+    if (host_ip in config_ip_list or (host_ip in loadbalancer_ip_list)) \
+        and (internal_vip != "none" or contrail_internal_vip != "none"):
         collector_stanza = generate_collector_ha_config(collector_ip_list, host_ip)
 
-    if (internal_vip != "none") and (host_ip in openstack_ip_list):
+    if (internal_vip != "none") and (host_ip in openstack_ip_list or \
+                                     host_ip in loadbalancer_ip_list):
         openstack_stanza = generate_openstack_ha_config(openstack_ip_list, host_ip)
 
     haproxy_config = haproxy_template.safe_substitute({
@@ -606,6 +623,7 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
     heat_cfn_api_server_lines = ''
     memcached_server_lines = ''
     mysql_server_lines = ''
+    rabbitmq_server_lines = ''
     space = ' ' * 3
 
     for server_index, host_ip in enumerate(openstack_ip_list):
@@ -644,6 +662,14 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
                 '%s server repcache%s %s:11211 check inter 2000 rise 2 fall 3\n'\
                  % (space, server_index, host_ip)
         if server_index == 0:
+             rabbitmq_server_lines +=\
+                   '%s server rabbit%s %s:5672 weight 200 check inter 2000 rise 2 fall 3\n'\
+                   % (space, server_index, host_ip)
+        else:
+             rabbitmq_server_lines +=\
+                   '%s server rabbit%s %s:5672 weight 100 check inter 2000 rise 2 fall 3 backup\n'\
+                   % (space, server_index, host_ip)
+        if server_index == 0:
              mysql_server_lines +=\
                    '%s server mysql%s %s:3306 weight 200 check inter 2000 rise 2 fall 3\n'\
                    % (space, server_index, host_ip)
@@ -665,6 +691,7 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
 	'__heat_api_backend_servers__': heat_api_server_lines,
 	'__heat_cfn_api_backend_servers__': heat_cfn_api_server_lines,
 	'__memcached_servers__' : memcached_server_lines,
+	'__rabbitmq_servers__' : rabbitmq_server_lines,
 	'__mysql_servers__' : mysql_server_lines,
 	'__contrail_hap_user__': 'haproxy',
 	'__contrail_hap_passwd__': 'contrail123',

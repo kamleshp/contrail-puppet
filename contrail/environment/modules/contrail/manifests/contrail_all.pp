@@ -1,5 +1,5 @@
 class contrail::contrail_all() {
-    stage{'contrail':}->stage{'provision_start':}->stage{'base':}->stage{'common':}->stage{'keepalived':}->stage{'haproxy':}->stage{'database':}->stage{'webui':}->stage{'openstack':}->stage{'ha_config':}->stage{'config':}->stage{'controller':}->stage{'collector':}->stage{'compute':}->stage{'provision_complete':}
+    stage{'contrail':}->stage{'provision_start':}->stage{'base':}->stage{'common':}->stage{'keepalived':}->stage{'haproxy':}->stage{'loadbalancer':}->stage{'database':}->stage{'webui':}->stage{'openstack':}->stage{'ha_config':}->stage{'config':}->stage{'controller':}->stage{'collector':}->stage{'compute':}->stage{'provision_complete':}
     class { '::contrail' : stage => 'contrail' }
     $host_roles = $contrail::params::host_roles
     class { '::contrail::provision_start' : state => 'provision_started', stage => 'provision_start' }
@@ -16,6 +16,7 @@ class contrail::contrail_all() {
     class { '::contrail::profile::controller' : stage => 'controller' }
     class { '::contrail::profile::collector' : stage => 'collector' }
     class { '::contrail::profile::compute' : stage => 'compute' }
+    class { '::contrail::profile::loadbalancer' : stage => 'loadbalancer'}
     class { '::contrail::provision_complete' : state => 'post_provision_completed', stage => 'provision_complete' }
     if 'tsn' in $host_roles {
        stage{'tsn':}

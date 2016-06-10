@@ -12,6 +12,7 @@ class contrail::config::neutron {
 
 
   $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers
+  $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
   $contrail_host_roles = $::contrail::params::host_roles
 
   # Params from quantum-server-setup.sh are now set here
@@ -26,7 +27,7 @@ class contrail::config::neutron {
 
 
   class { '::neutron':
-    rabbit_hosts           => $contrail_rabbit_servers,
+    rabbit_hosts           => "${contrail_rabbit_servers}:${contrail_rabbit_port}",
     bind_port             => $::contrail::params::quantum_port,
     auth_strategy         => 'keystone',
     core_plugin           => 'neutron_plugin_contrail.plugins.opencontrail.contrail_plugin.NeutronPluginContrailCoreV2',

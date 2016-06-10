@@ -9,7 +9,8 @@ class contrail::haproxy::config(
     $internal_vip =  $::contrail::params::internal_vip,
     $host_ip = $::contrail::params::host_ip,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
-    $tor_ha_proxy_config = $::contrail::params::tor_ha_config
+    $tor_ha_proxy_config = $::contrail::params::tor_ha_config,
+    $loadbalancer_ip_list = $::contrail::params::loadbalancer_ip_list
 ) {
 
     $ha_internal_vip = pick($internal_vip, 'none')
@@ -17,6 +18,7 @@ class contrail::haproxy::config(
     $openstack_ip_list_shell   = join($openstack_ip_list, ",")
     $openstack_name_list_shell = join($openstack_name_list, ",")
     $config_ip_list_shell   = join($config_ip_list, ",")
+    $loadbalancer_ip_list_shell   = join($loadbalancer_ip_list, ",")
     $config_name_list_shell = join($config_name_list, ",")
     $collector_ip_list_shell   = join($collector_ip_list, ",")
     $collector_name_list_shell = join($collector_name_list, ",")

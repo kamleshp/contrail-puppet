@@ -33,12 +33,14 @@ class contrail::keepalived(
     $contrail_internal_virtual_router_id = $::contrail::params::contrail_internal_virtual_router_id,
     $external_virtual_router_id = $::contrail::params::external_virtual_router_id,
     $contrail_external_virtual_router_id = $::contrail::params::contrail_external_virtual_router_id,
-    $openstack_ip_list = $::contrail::params::openstack_ip_list
+    $openstack_ip_list = $::contrail::params::openstack_ip_list,
+    $loadbalancer_ip_list = $::contrail::params::loadbalancer_ip_list,
 )  {
 
     notify { "Keepalived - host_control_ip = ${host_control_ip}":; } ->
     notify { "Keepalived - config_ip_list = ${config_ip_list}":; } ->
     notify { "Keepalived - internal_vip = ${internal_vip}":; } ->
+    notify { "Keepalived - loadbalancer_ip_list = ${loadbalancer_ip_list}":; } ->
     notify { "Keepalived - contrail_internal_vip = ${contrail_internal_vip}":; } ->
     notify { "Keepalived - internal_virtual_router_id = ${internal_virtual_router_id}":; } ->
     notify { "Keepalived - contrail_internal_virtual_router_id = ${contrail_internal_virtual_router_id}":; } ->
@@ -47,39 +49,73 @@ class contrail::keepalived(
     notify { "Keepalived - openstack_ip_list = ${openstack_ip_list}":; }
 
 
-    if ($host_control_ip in $openstack_ip_list and $external_vip != '') {
-        Notify["Keepalived - openstack_ip_list = ${openstack_ip_list}"]->
-        contrail::keepalived::keepalived{'external_ip':
-            contrail_ip_list  => $openstack_ip_list,
-            virtual_router_id => $external_virtual_router_id,
-            vip               => $external_vip
+    if (size($loadbalancer_ip_list) == 0) {
+        if ($host_control_ip in $openstack_ip_list and $external_vip != '') {
+            Notify["Keepalived - openstack_ip_list = ${openstack_ip_list}"]->
+            contrail::keepalived::keepalived{'external_ip':
+                contrail_ip_list  => $openstack_ip_list,
+                virtual_router_id => $external_virtual_router_id,
+                vip               => $external_vip
+            }
         }
-    }
-
-    if ($host_control_ip in $openstack_ip_list and $internal_vip != '') {
-        Notify["Keepalived - openstack_ip_list = ${openstack_ip_list}"]->
-        contrail::keepalived::keepalived{'internal_ip':
-            contrail_ip_list  => $openstack_ip_list,
-            virtual_router_id => $internal_virtual_router_id,
-            vip               => $internal_vip
+        if ($host_control_ip in $openstack_ip_list and $internal_vip != '') {
+            Notify["Keepalived - openstack_ip_list = ${openstack_ip_list}"]->
+            contrail::keepalived::keepalived{'internal_ip':
+                contrail_ip_list  => $openstack_ip_list,
+                virtual_router_id => $internal_virtual_router_id,
+                vip               => $internal_vip
+            }
         }
-    }
-
-    if ($host_control_ip in $config_ip_list and $contrail_internal_vip != '') {
-        Notify["Keepalived - openstack_ip_list = ${openstack_ip_list}"]->
-        contrail::keepalived::keepalived{'contrail_internal_ip':
-            contrail_ip_list  => $config_ip_list,
-            virtual_router_id => $contrail_internal_virtual_router_id,
-            vip               => $contrail_internal_vip
+        if ($host_control_ip in $config_ip_list and $contrail_internal_vip != '') {
+            Notify["Keepalived - openstack_ip_list = ${openstack_ip_list}"]->
+            contrail::keepalived::keepalived{'contrail_internal_ip':
+                contrail_ip_list  => $config_ip_list,
+                virtual_router_id => $contrail_internal_virtual_router_id,
+                vip               => $contrail_internal_vip
+            }
         }
-    }
+        if ($host_control_ip in $config_ip_list and $contrail_external_vip != '') {
+            Notify["Keepalived - openstack_ip_list = ${openstack_ip_list}"]->
+            contrail::keepalived::keepalived{'contrail_external_ip':
+                contrail_ip_list  => $config_ip_list,
+                virtual_router_id => $contrail_external_virtual_router_id,
+                vip               => $contrail_external_vip
+            }
+        }
+    } else {
+        if ($external_vip != '') {
+            Notify["Keepalived - loadbalancer_ip_list = ${loadbalancer_ip_list}"]->
+            contrail::keepalived::keepalived{'external_ip':
+                contrail_ip_list  => $loadbalancer_ip_list,
+                virtual_router_id => $external_virtual_router_id,
+                vip               => $external_vip
+            }
+        }
 
-    if ($host_control_ip in $config_ip_list and $contrail_external_vip != '') {
-        Notify["Keepalived - openstack_ip_list = ${openstack_ip_list}"]->
-        contrail::keepalived::keepalived{'contrail_external_ip':
-            contrail_ip_list  => $config_ip_list,
-            virtual_router_id => $contrail_external_virtual_router_id,
-            vip               => $contrail_external_vip
+        if ($internal_vip != '') {
+            Notify["Keepalived - loadbalancer_ip_list = ${loadbalancer_ip_list}"]->
+            contrail::keepalived::keepalived{'internal_ip':
+                contrail_ip_list  => $loadbalancer_ip_list,
+                virtual_router_id => $internal_virtual_router_id,
+                vip               => $internal_vip
+            }
+        }
+
+        if ($contrail_internal_vip != '') {
+            Notify["Keepalived - loadbalancer_ip_list = ${loadbalancer_ip_list}"]->
+            contrail::keepalived::keepalived{'contrail_internal_ip':
+                contrail_ip_list  => $loadbalancer_ip_list,
+                virtual_router_id => $contrail_internal_virtual_router_id,
+                vip               => $contrail_internal_vip
+            }
+        }
+        if ($contrail_external_vip != '') {
+            Notify["Keepalived - loadbalancer_ip_list = ${loadbalancer_ip_list}"]->
+            contrail::keepalived::keepalived{'contrail_external_ip':
+                contrail_ip_list  => $loadbalancer_ip_list,
+                virtual_router_id => $contrail_external_virtual_router_id,
+                vip               => $contrail_external_vip
+            }
         }
     }
 }

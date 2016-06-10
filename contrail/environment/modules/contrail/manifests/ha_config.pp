@@ -55,6 +55,7 @@
 #
 class contrail::ha_config (
     $host_control_ip = $::contrail::params::host_ip,
+    $config_ip_list = $::contrail::params::config_ip_list,
     $openstack_ip_list = $::contrail::params::openstack_ip_list,
     $zookeeper_ip_list = $::contrail::params::database_ip_list,
     $compute_name_list = $::contrail::params::compute_name_list,
@@ -74,6 +75,7 @@ class contrail::ha_config (
     $enable_pre_exec_vnc_galera = $::contrail::params::enable_pre_exec_vnc_galera,
     $enable_post_exec_vnc_galera = $::contrail::params::enable_post_exec_vnc_galera,
     $enable_sequence_provisioning = $::contrail::params::enable_sequence_provisioning,
+    $loadbalancer_ip_list = $::contrail::params::loadbalancer_ip_list,
 )  {
     # Main code for class
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -355,6 +357,29 @@ class contrail::ha_config (
                 -> contrail::lib::check_transfer_keys{ $openstack_mgmt_ip_list :;}
                 -> Contrail::Lib::Report_status['post_exec_vnc_galera_completed']
             }
+        }
+    }
+    if ((size($loadbalancer_ip_list) != 0) and ($host_control_ip in $config_ip_list)) {
+        notify { "contrail-openstack-ha package brings keepalived, so stop keepalived if external LB":; }
+
+        if ($lsbdistrelease == "14.04") {
+            $keepalived_pkg         = '1.2.13-0~276~ubuntu14.04.1'
+        } else {
+            $keepalived_pkg         = '1:1.2.13-1~bpo70+1'
+        }
+
+        package { 'keepalived' :
+            ensure => $keepalived_pkg,
+        }
+        ->
+        service { "keepalived" :
+            enable => false,
+            ensure => stopped,
+        }
+        ->
+        service { "haproxy" :
+            enable => false,
+            ensure => stopped,
         }
     }
 }

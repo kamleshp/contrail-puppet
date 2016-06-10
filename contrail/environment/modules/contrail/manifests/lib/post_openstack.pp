@@ -45,6 +45,7 @@ define contrail::lib::post_openstack(
       }
       glance_api_config {
         'DATABASE/connection'   : value => $glance_db_conn;
+        'DEFAULT/rabbit_host'   : value => $rabbit_host;
       }
       neutron_config {
         'DATABASE/connection'   : value => $neutron_db_conn;

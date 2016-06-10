@@ -8,13 +8,15 @@ class openstack::common::glance {
   $contrail_internal_vip = $::contrail::params::contrail_internal_vip
 
   $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers
+  $rabbit_port = $::contrail::params::openstack_rabbit_port
 
 
 
   if ($internal_vip != "" and $internal_vip != undef) {
     class { '::glance::api':
       keystone_password => $::openstack::config::glance_password,
-      auth_host         => $::openstack::config::controller_address_management,
+      auth_host         => $::contrail::params::keystone_ip_to_use,
+      auth_port         => $::contrail::params::auth_port,
       keystone_tenant   => 'services',
       keystone_user     => 'glance',
       sql_connection    => $::openstack::resources::connectors::glance,
@@ -70,8 +72,9 @@ class openstack::common::glance {
 
 
   # basic service config
-  glance_api_config {'DEFAULT/rabbit_hosts':
-     value => $openstack_rabbit_servers,
+  glance_api_config {
+     'DEFAULT/rabbit_hosts':    value => $openstack_rabbit_servers;
+     'DEFAULT/rabbit_port':     value => $rabbit_port,
      notify => Service['glance-api']
   }
 

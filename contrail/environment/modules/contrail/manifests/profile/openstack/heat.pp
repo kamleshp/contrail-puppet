@@ -10,6 +10,25 @@ class contrail::profile::openstack::heat (
     $controller_management_address = $::openstack::config::controller_address_management
     $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers
     $internal_vip = $::contrail::params::internal_vip
+
+    if ($::contrail::params::keystone_admin_address) {
+        $admin_address = $::contrail::params::keystone_admin_address
+    } else {
+        $admin_address = $::openstack::config::controller_address_management
+    }
+
+    if ($::contrail::params::keystone_internal_address) {
+        $internal_address = $::contrail::params::keystone_internal_address
+    } else {
+        $internal_address = $::openstack::config::controller_address_management
+    }
+
+    if ($::contrail::params::keystone_public_address) {
+        $public_address = $::contrail::params::keystone_public_address
+    } else {
+        $public_address = $::openstack::config::controller_address_management
+    }
+
     if ($internal_vip != '' and $internal_vip != undef) {
       $heat_api_bind_host = '0.0.0.0'
       $heat_api_bind_port = '8005'
@@ -25,28 +44,29 @@ class contrail::profile::openstack::heat (
 
     class { '::heat::keystone::auth':
       password         => $::openstack::config::heat_password,
-      public_address   => $::openstack::config::controller_address_api,
-      admin_address    => $::openstack::config::controller_address_management,
-      internal_address => $::openstack::config::controller_address_management,
+      public_address   => $public_address,
+      admin_address    => $admin_address,
+      internal_address => $internal_address,
       region           => $::openstack::config::region,
     }
 
     class { '::heat::keystone::auth_cfn':
       password         => $::openstack::config::heat_password,
-      public_address   => $::openstack::config::controller_address_api,
-      admin_address    => $::openstack::config::controller_address_management,
-      internal_address => $::openstack::config::controller_address_management,
+      public_address   => $public_address,
+      admin_address    => $admin_address,
+      internal_address => $internal_address,
       region           => $::openstack::config::region,
     }
 
     class { '::heat':
       sql_connection    => $::openstack::resources::connectors::heat,
-      rabbit_hosts       => $openstack_rabbit_servers,
+      rabbit_host       => $::contrail::params::openstack_rabbit_servers,
+      rabbit_port       => $::contrail::params::openstack_rabbit_port,
       rabbit_userid     => $::openstack::config::rabbitmq_user,
       rabbit_password   => $::openstack::config::rabbitmq_password,
       debug             => $::openstack::config::debug,
       verbose           => $::openstack::config::verbose,
-      keystone_host     => $::openstack::config::controller_address_management,
+      keystone_host     => $::contrail::params::keystone_ip_to_use,
       keystone_password => $::openstack::config::heat_password,
       mysql_module      => '2.2',
     }
@@ -82,5 +102,5 @@ class contrail::profile::openstack::heat (
     notify { "contrail::profile::openstack::heat - rabbit_hosts = ${openstack_rabbit_servers}":; }
     notify { "contrail::profile::openstack::heat - contrail_api_server = ${contrail_api_server}":; }
     notify { "contrail::profile::openstack::heat - keystone_auth_public_url = ${::heat::keystone::auth::public_url}":; }
-
+    notify { "contrail::profile::openstack::heat - keystone_auth_public_url = ${public_address}":; }
 }

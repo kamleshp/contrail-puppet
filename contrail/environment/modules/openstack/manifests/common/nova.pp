@@ -12,12 +12,18 @@ class openstack::common::nova ($is_compute    = false) {
   $management_address = ip_for_network($management_network)
 
   $storage_management_address = $::openstack::config::storage_address_management
-  $controller_management_address = $::openstack::config::controller_address_management
   $internal_vip = $::contrail::params::internal_vip
   $contrail_internal_vip = $::contrail::params::contrail_internal_vip
 
-  $contrail_neutron_server = $::contrail::params::contrail_neutron_server
   $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers
+
+  if ($internal_vip != "" and $internal_vip != undef) {
+    $controller_management_address = $internal_vip
+    $contrail_neutron_server = $internal_vip
+  } else {
+    $controller_management_address = $::openstack::config::controller_address_management
+    $contrail_neutron_server = $::contrail::params::config_ip_to_use
+  }
 
   $openstack_ip_list = $::contrail::params::openstack_ip_list
 
@@ -40,18 +46,25 @@ class openstack::common::nova ($is_compute    = false) {
   if ($internal_vip != "" and $internal_vip != undef) {
     class { '::nova':
       sql_connection     => $::openstack::resources::connectors::nova,
-      glance_api_servers => "http://${storage_management_address}:9292",
+      glance_api_servers => "http://${internal_vip}:9292",
       memcached_servers  => ["$contrail_memcache_servers"],
-      rabbit_hosts       => $openstack_rabbit_servers,
+      rabbit_host        => $internal_vip,
+      rabbit_port        => '5673',
       rabbit_userid      => $::openstack::config::rabbitmq_user,
       rabbit_password    => $::openstack::config::rabbitmq_password,
+      rabbit_ha_queues   => 'True',
       debug              => $::openstack::config::debug,
       verbose            => $::openstack::config::verbose,
       mysql_module       => '2.2',
       database_idle_timeout => '180',
       notification_driver => "nova.openstack.common.notifier.rpc_notifier",
     }
+    $loadbalancer_ip_list = $::contrail::params::loadbalancer_ip_list
 
+    if (size($loadbalancer_ip_list) != 0) {
+      nova_config { 'glance/host': value => $internal_vip }
+      Nova_config['glance/host'] -> Nova_config['DEFAULT/osapi_compute_listen_port']
+    }
     nova_config {
       'DEFAULT/osapi_compute_listen_port':     value => '9774';
       'DEFAULT/metadata_listen_port':          value => '9775';
@@ -79,7 +92,7 @@ class openstack::common::nova ($is_compute    = false) {
 
     class { '::nova::api':
       admin_password                       => $::openstack::config::nova_password,
-      auth_host                            => $controller_management_address,
+      auth_host                            => $internal_vip,
       enabled                              => $is_controller,
       sync_db                              => $sync_db,
       neutron_metadata_proxy_shared_secret => $::openstack::config::neutron_shared_secret,

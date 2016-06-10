@@ -686,6 +686,10 @@ class contrail::params (
     $enable_collector,
     $enable_webui,
     $enable_compute,
+    $enable_loadbalancer,
+    $loadbalancer_cidr,
+    $loadbalancer_method,
+    $loadbalancer_ip_list,
     $enable_tsn,
     $enable_toragent,
     $enable_pre_exec_vnc_galera,
@@ -739,8 +743,10 @@ class contrail::params (
         $keystone_ip_to_use = $keystone_ip
     } elsif ($internal_vip != '') {
         $keystone_ip_to_use = $internal_vip
+        $auth_port = "5000"
     } else {
         $keystone_ip_to_use = $openstack_ip_list[0]
+        $auth_port = $keystone_auth_port
     }
 
     #vip_to_use
@@ -776,6 +782,33 @@ class contrail::params (
         $discovery_ip_to_use = $config_ip_list[0]
     }
 
+    # set ip addresses for keystone endpoints
+    if ($contrail_external_vip != '' and $contrail_external_vip != undef) {
+      $neutron_public_address = $contrail_external_vip
+    } else {
+      $neutron_public_address = $::contrail::params::config_ip_list[0]
+    }
+    if ($contrail_internal_vip != '' and $contrail_internal_vip != undef) {
+      $neutron_admin_address = $contrail_internal_vip
+      $neutron_internal_address = $contrail_internal_vip
+    } else {
+      $neutron_admin_address = $::contrail::params::config_ip_list[0]
+      $neutron_internal_address = $::contrail::params::config_ip_list[0]
+    }
+    if ($external_vip != '' and $external_vip != undef) {
+      $keystone_public_address = $external_vip
+    } else {
+      $keystone_public_address = $::contrail::params::config_ip_list[0]
+    }
+    if ($internal_vip != '' and $internal_vip != undef) {
+      $keystone_admin_address = $internal_vip
+      $keystone_internal_address = $internal_vip
+    } else {
+      $keystone_admin_address = $::contrail::params::config_ip_list[0]
+      $keystone_internal_address = $::contrail::params::config_ip_list[0]
+    }
+
+     #rabbit host has same logic as config_ip
     #rabbit host has same logic as config_ip
     $contrail_rabbit_host = $config_ip_to_use
 
@@ -786,6 +819,8 @@ class contrail::params (
     }
     if ($contrail_amqp_port != '') {
         $contrail_rabbit_port = $contrail_amqp_port
+    } elsif ($contrail_internal_vip) {
+        $contrail_rabbit_port = '5673'
     } else {
         $contrail_rabbit_port = '5672'
     }
@@ -801,12 +836,24 @@ class contrail::params (
     }
     if ($openstack_amqp_port != '') {
         $openstack_rabbit_port = $openstack_amqp_port
+    } elsif ($internal_vip) {
+        $openstack_rabbit_port = '5673'
     } else {
         $openstack_rabbit_port = '5672'
     }
 
-    $contrail_rabbit_servers = join($contrail_rabbit_ip_list,",")
-    $openstack_rabbit_servers = join($openstack_rabbit_ip_list,",")
+    if (($internal_vip) and (!($openstack_amqp_ip_list or
+                                $contrail_amqp_ip_list or
+                                $openstack_manage_amqp))) {
+        $openstack_rabbit_servers = $internal_vip
+    } else {
+        $openstack_rabbit_servers = join($openstack_rabbit_ip_list,",")
+    }
+    if (($contrail_internal_vip) and (!($contrail_amqp_ip_list))){
+        $contrail_rabbit_servers = $contrail_internal_vip
+    } else {
+        $contrail_rabbit_servers = join($contrail_rabbit_ip_list,",")
+    }
 
     # Set amqp_server_ip
     if ($::contrail::params::amqp_sever_ip != '') {

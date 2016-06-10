@@ -6,9 +6,10 @@ class contrail::provision_role_collector (
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
     $keystone_admin_user = $::contrail::params::keystone_admin_user,
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
+    $api_server_ip = $::contrail::params::config_ip_to_use,
 ) {
     exec { 'provision-role-collector' :
-            command   => "python /opt/contrail/provision_role.py ${collector_ip_list_for_shell} ${collector_name_list_for_shell} ${config_ip} ${keystone_admin_user} ${keystone_admin_password} ${keystone_admin_tenant} 'collector' && echo provision-role-collector >> /etc/contrail/contrail_config_exec.out",
+            command   => "python /opt/contrail/provision_role.py ${collector_ip_list_for_shell} ${collector_name_list_for_shell} ${api_server_ip} ${keystone_admin_user} ${keystone_admin_password} ${keystone_admin_tenant} 'collector' && echo provision-role-collector >> /etc/contrail/contrail_config_exec.out",
             provider  => shell,
             logoutput => $contrail_logoutput
     }

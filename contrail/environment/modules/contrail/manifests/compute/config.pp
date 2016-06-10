@@ -40,7 +40,9 @@ class contrail::compute::config(
     $xmpp_dns_auth_enable =  $::contrail::params::xmpp_dns_auth_enable,
     $enable_dpdk=  $::contrail::params::enable_dpdk,
     $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers,
+    $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port,
     $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers,
+    $openstack_rabbit_port = $::contrail::params::openstack_rabbit_port,
     $openstack_amqp_ip_list = $::contrail::params::openstack_amqp_ip_list,
     $sriov = $::contrail::params::sriov,
     $nova_rabbit_hosts = $::contrail::params::nova_rabbit_hosts,
@@ -196,10 +198,12 @@ class contrail::compute::config(
 
     if ($openstack_manage_amqp or $openstack_amqp_ip_list) {
         $nova_compute_rabbit_hosts = $openstack_rabbit_servers
+        $nova_compute_rabbit_port = $openstack_rabbit_port
     } elsif ($nova_rabbit_hosts){
         $nova_compute_rabbit_hosts = $nova_rabbit_hosts
     } else {
         $nova_compute_rabbit_hosts = $contrail_rabbit_servers
+        $nova_compute_rabbit_port = $contrail_rabbit_port
     }
 
     $nova_params = {
@@ -212,6 +216,7 @@ class contrail::compute::config(
       'keystone_authtoken/admin_password'=> { value => "${keystone_admin_password}" },
       'compute/compute_driver'=> { value => "libvirt.LibvirtDriver" },
       'DEFAULT/rabbit_hosts' => {value => "${nova_compute_rabbit_hosts}"},
+      'DEFAULT/rabbit_port' => {value => "${nova_compute_rabbit_port}"},
     }
     if ($keystone_ip) {
       $vnc_base_url_port = '5999'
@@ -329,11 +334,11 @@ class contrail::compute::config(
         config_file => '/etc/nova/nova.conf',
         lens_to_use => 'properties.lns',
     } ->
-    contrail::lib::augeas_conf_rm { "compute_rm_rabbit_port":
-        key => 'rabbit_port',
-        config_file => '/etc/nova/nova.conf',
-        lens_to_use => 'properties.lns',
-    } ->
+    #contrail::lib::augeas_conf_rm { "compute_rm_rabbit_port":
+    #    key => 'rabbit_port',
+    #    config_file => '/etc/nova/nova.conf',
+    #    lens_to_use => 'properties.lns',
+    #} ->
     Class['::contrail::compute::add_dev_tun_in_cgroup_device_acl'] ->
 
     file { '/etc/contrail/vrouter_nodemgr_param' :
@@ -391,7 +396,7 @@ class contrail::compute::config(
         keystone_admin_user => $keystone_admin_user,
         keystone_admin_password => $keystone_admin_password,
         keystone_admin_tenant => $keystone_admin_tenant,
-        openstack_ip => $openstack_ip,
+        openstack_ip => $keystone_ip_to_use,
         enable_dpdk => $enable_dpdk
     }
     ->
