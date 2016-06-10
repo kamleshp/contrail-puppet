@@ -1,0 +1,156 @@
+below is sample cluster and server params definitions for supporting external loadbalancer function:
+
+cluster.json
+===========
+{
+    "cluster" : [
+        {
+            "id": "new-ha2",
+            "parameters" : {
+                "provision": {
+                    "contrail": {
+                        "ha": {
+                            "contrail_internal_vip": "192.168.100.250",
+                            "contrail_external_vip": "192.168.100.251",
+                            "contrail_internal_virtual_router_id": 250,
+                            "contrail_external_virtual_router_id": 251
+                        },
+                        "database": {
+                            "minimum_diskGB": 32
+                        },
+                        "loadbalancer": {
+                            "loadbalancer_cidr": "203.0.113.150/32",
+                            "loadbalancer_method": "keepalived"
+                        }
+                    },
+                    "openstack":{
+                        "ha": {
+                            "internal_vip": "192.168.100.252",
+                            "external_vip": "192.168.100.253",
+                            "internal_virtual_router_id": 252,
+                            "external_virtual_router_id": 253
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}
+
+Server.json
+===========
+{
+    "server": [
+        {
+            "cluster_id": "new-ha2", 
+            "domain": "contrail.juniper.net", 
+            "host_name": "ctrl1-a1s9", 
+            "id": "ctrl1-a1s9", 
+            "ip_address": "192.168.100.101", 
+            "mac_address": "AA:BB:CC:00:22:01", 
+            "parameters": {
+                "interface_name": "eth1"
+            },
+            "password": "c0ntrail123",
+            "roles": [
+                "control", 
+                "database", 
+                "collector", 
+                "webui", 
+                "openstack", 
+                "config"                
+            ], 
+            "subnet_mask": "255.255.255.0"
+        },
+        {
+            "cluster_id": "new-ha2", 
+            "domain": "contrail.juniper.net", 
+            "host_name": "ctrl2-a1s9", 
+            "id": "ctrl2-a1s9", 
+            "ip_address": "192.168.100.102", 
+            "mac_address": "AA:BB:CC:00:23:01", 
+            "parameters": {
+                "interface_name": "eth1"
+            }, 
+            "password": "c0ntrail123",
+            "roles": [
+                "control", 
+                "database", 
+                "collector", 
+                "webui", 
+                "openstack", 
+                "config"                
+            ], 
+            "subnet_mask": "255.255.255.0"
+        },
+        {
+            "cluster_id": "new-ha2", 
+            "domain": "contrail.juniper.net", 
+            "host_name": "ctrl3-a1s9", 
+            "id": "ctrl3-a1s9", 
+            "ip_address": "192.168.100.103", 
+            "mac_address": "AA:BB:CC:00:24:01", 
+            "parameters": {
+                "interface_name": "eth1"
+            }, 
+            "password": "c0ntrail123",
+            "roles": [
+                "control", 
+                "database", 
+                "collector", 
+                "webui", 
+                "openstack", 
+                "config"                
+            ], 
+            "subnet_mask": "255.255.255.0"
+        },
+        {
+            "cluster_id": "new-ha2", 
+            "domain": "contrail.juniper.net", 
+            "host_name": "lb1-a1s9", 
+            "id": "lb1-a1s9", 
+            "ip_address": "192.168.100.104", 
+            "mac_address": "AA:BB:CC:00:25:01", 
+            "parameters": {
+                "interface_name": "eth1"
+            }, 
+            "password": "c0ntrail123",
+            "roles": [
+                "loadbalancer"                
+            ], 
+            "subnet_mask": "255.255.255.0"
+        },
+        {
+            "cluster_id": "new-ha2", 
+            "domain": "contrail.juniper.net", 
+            "host_name": "lb2-a1s9", 
+            "id": "lb2-a1s9", 
+            "ip_address": "192.168.100.105", 
+            "mac_address": "AA:BB:CC:00:26:01", 
+            "parameters": {
+                "interface_name": "eth1"
+            }, 
+            "password": "c0ntrail123",
+            "roles": [
+                "loadbalancer"                
+            ], 
+            "subnet_mask": "255.255.255.0"
+        },
+        {
+            "cluster_id": "new-ha2", 
+            "domain": "contrail.juniper.net", 
+            "host_name": "compute-a1s9", 
+            "id": "compute-a1s9", 
+            "ip_address": "192.168.100.106", 
+            "mac_address": "AA:BB:CC:00:27:01", 
+            "parameters": {
+                "interface_name": "eth1"
+            }, 
+            "password": "c0ntrail123",
+            "roles": [
+                "compute"                
+            ], 
+            "subnet_mask": "255.255.255.0"
+        }
+    ]
+}
